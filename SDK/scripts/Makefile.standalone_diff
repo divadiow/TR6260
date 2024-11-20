@@ -1,0 +1,454 @@
+#// --------------------------------------------------
+#// Alias Generated From system_info
+#// --------------------------------------------------
+
+TARGET		=	standalone
+DEFINE		=	-DTARGET_NAME=\"$(TARGET)\" \
+				-DLMAC_CONFIG_11N  \
+				-DICACHE_ENABLE=1 \
+				-DDCACHE_ENABLE=1 \
+
+
+
+#// -------------------------------------------------
+#// Features
+#// --------------------------------------------------
+
+DEFINE				+=	-DINCLUDE_STANDALONE -DCONFIG_OS_FREERTOS -DNRF  -DXIP_FLASH
+DEFINE	+= -D_USE_PSM 
+DEFINE	+= -D_USE_OTA_DIFF
+#DEFINE  += -DENABLE_LWIP_NAPT
+
+ifeq ($(type), fpga)
+DEFINE	+= -DFPGA
+else ifeq ($(type), mpw)
+DEFINE	+= -DMPW
+else ifeq ($(type), tr6260)
+DEFINE	+= -D_USR_TR6260
+else ifeq ($(type), tr6260s1)
+DEFINE	+= -D_USR_TR6260S1
+else ifeq ($(type), tr6260_3)
+DEFINE	+= -D_USR_TR6260_3
+else
+$(error type is undefined!!)
+endif
+
+DEFINE	+= -D_USR_STANDALONE
+#DEFINE	+= -DUART_WPA_SEPARATION
+
+OUTPUT	=	standalone_$(type)
+OBJ_PATH := $(OUT_PATH)/$(type)/$(TARGET)/obj_$(OUTPUT)
+
+#// --------------------------------------------------
+#// Specific LD File
+#// --------------------------------------------------
+
+LD_FILE	= $(SCRIPT_PATH)/ld/nds_$(type)_xip_diff.ld
+LD_FILE_OTA	= $(SCRIPT_PATH)/ld/nds_$(type)_xip_ota.ld
+
+#// --------------------------------------------------
+
+#// --------------------------------------------------
+#// Target Specific Source Files
+#// --------------------------------------------------
+VPATH	:=  \
+			$(DRV_PATH)/ \
+			$(COMMON_PATH)/ \
+			$(PLATFORM_PATH)/FreeRTOS \
+			$(PLATFORM_PATH)/json \
+			$(WIFI_PATH) \
+			$(REF_PATH)/standalone
+
+INCLUDE	:= -I$(INC_PATH) \
+			-I$(INC_PATH)/FreeRTOS \
+			-I$(INC_PATH)/drivers \
+			-I$(INC_PATH)/drivers/bsp \
+			-I$(INC_PATH)/wifi \
+			-I$(INC_PATH)/json \
+			-I$(REF_PATH)/standalone
+
+CSRCS	:=
+ASRCS	:=
+SRCS	:=
+
+#// DRIVER/BSP
+VPATH	+= $(DRV_PATH)/bsp
+INCLUDE	+= -I$(DRV_PATH)/bsp
+CSRCS	+= bsp.c bsp_ext.c irq.c pit.c wdt.c pcu.c panic.c
+ASRCS	+= start.S os_cpu_a.S
+
+#// DRIVER
+#CSRCS	+= hal_uart.c hal_spiflash.c hal_rtc.c hal_i2c.c hal_gpio.c hal_pwm.c hal_aes.c hal_efuse.c hal_adc.c hal_sensor.c hal_spi_master.c hal_spi_slave.c dma_control.c
+ifeq ($(type), tr6260)
+CSRCS	+= hal_uart.c\
+		   hal_spiflash.c\
+		   hal_rtc.c \
+		   hal_i2c.c \
+		   hal_gpio.c \
+		   hal_pwm.c \
+		   hal_aes.c \
+		   hal_efuse.c \
+		   hal_adc.c \
+		   hal_trng.c \
+		   hal_timer.c \
+		   hal_spi_master.c \
+		   hal_spi_slave.c \
+		   dma_control.c \
+		   hal_trim.c
+endif
+ifeq ($(type), fpga)
+CSRCS	+= hal_uart.c\
+		   hal_spiflash.c\
+		   hal_rtc.c \
+		   hal_i2c.c \
+		   hal_gpio.c \
+		   hal_pwm.c \
+		   hal_aes.c \
+		   hal_efuse.c \
+		   hal_adc.c \
+		   hal_trng.c \
+		   hal_timer.c \
+		   dma_control.c
+endif
+ifeq ($(type), tr6260s1)
+CSRCS	+= hal_uart.c\
+		   hal_spiflash.c\
+		   hal_rtc.c \
+		   hal_i2c.c \
+		   hal_gpio.c \
+		   hal_pwm.c \
+		   hal_aes.c \
+		   hal_efuse.c \
+		   hal_adc.c \
+		   hal_trng.c \
+		   hal_timer.c \
+		   hal_spi_master.c \
+		   hal_spi_slave.c \
+		   dma_control.c \
+		   hal_trim.c
+endif
+
+ifeq ($(type), tr6260_3)
+CSRCS	+= hal_uart.c\
+		   hal_spiflash.c\
+		   hal_rtc.c \
+		   hal_i2c.c \
+		   hal_gpio.c \
+		   hal_pwm.c \
+		   hal_aes.c \
+		   hal_efuse.c \
+		   hal_adc.c \
+		   hal_trng.c \
+		   hal_timer.c \
+		   hal_spi_master.c \
+		   hal_spi_slave.c \
+		   dma_control.c \
+		   hal_trim.c
+endif
+
+
+
+#// PLATFORM/FreeRTOS
+CSRCS	+= portISR.c port.c portException.c tasks.c list.c queue.c heap_5.c timers.c event_groups.c
+
+#// pthread
+VPATH	+= $(PLATFORM_PATH)/pthread
+INCLUDE += -I$(PLATFORM_PATH)/pthread
+CSRCS   += pthread_local_storage.c
+
+#//PLATFORM/JSON
+CSRCS	+= cJSON.c
+
+#//PLATFORM/OTAHAL
+VPATH	+= $(PLATFORM_PATH)/otaHal
+CSRCS	+= otaDiffHal.c
+
+#// PLATFORM/LWIP
+LWIP_VERSION 	= lwip-2.1.0
+LWIP_SRC_BASE 	= $(PLATFORM_PATH)/lwip/$(LWIP_VERSION)/src
+LWIP_CORE		= $(LWIP_SRC_BASE)/core
+LWIP_API		= $(LWIP_SRC_BASE)/api
+LWIP_NETIF		= $(LWIP_SRC_BASE)/netif
+LWIP_INC		= $(LWIP_SRC_BASE)/include
+LWIP_APPS_SRC	= $(LWIP_SRC_BASE)/apps
+LWIP_IPV4		= $(LWIP_CORE)/ipv4
+LWIP_CONTRIB 	= $(PLATFORM_PATH)/lwip/contrib/port
+#LWIP_CONTRIB_APPS 	= $(LWIP_CONTRIB)/apps
+LWIP_PING		= $(LWIP_APPS_SRC)/ping
+LWIP_DHCPS		= $(LWIP_APPS_SRC)/dhcpserver
+
+INCLUDE += -I$(LWIP_SRC_BASE) -I$(LWIP_NETIF) -I$(LWIP_API) -I$(LWIP_CORE) -I$(LWIP_INC)
+INCLUDE += -I$(LWIP_IPV4) -I$(LWIP_CONTRIB) -I$(LWIP_POSIX)
+VPATH	+= $(LWIP_SRC_BASE):$(LWIP_NETIF):$(LWIP_CORE):$(LWIP_NETIF):$(LWIP_API)
+VPATH	+= $(LWIP_INC):$(LWIP_IPV4):$(LWIP_CONTRIB):$(LWIP_APPS_SRC)
+CSRCS	+= ip4.c ip4_frag.c ip4_addr.c def.c dns.c inet_chksum.c ip.c stats.c
+CSRCS	+= autoip.c dhcp.c etharp.c icmp.c igmp.c raw.c  timeouts.c sys.c tcp.c
+CSRCS	+= tcp_in.c tcp_out.c udp.c mem.c memp.c netif.c pbuf.c  init.c sys_arch.c 
+CSRCS	+= api_lib.c api_msg.c err.c sockets.c tcpip.c ethernet.c netbuf.c netdb.c netifapi.c
+DEFINE  += -DSTACK_LWIP -DNRC_MODIFY_LWIP_STACK
+
+#lwip napt
+ifneq ($(findstring ENABLE_LWIP_NAPT,$(DEFINE)), )
+CSRCS   += napt.c
+endif
+
+#relay demo
+ifneq ($(findstring ENABLE_LWIP_NAPT,$(DEFINE)), )
+CSRCS   += demo_relay.c
+endif
+
+INCLUDE += -I$(LWIP_PING)
+VPATH   += $(LWIP_PING)
+CSRCS   += ping.c
+DEFINE  += -DLWIP_PING
+
+ifneq ($(type), fpga)
+DEFINE += -DIPERF_SUPPORT
+else
+endif
+ifneq ($(findstring IPERF_SUPPORT,$(DEFINE)), )
+DEFINE += -D__TR_SW__
+IPERF_PATH = $(PLATFORM_PATH)/iperf3
+INCLUDE += -I$(IPERF_PATH)
+INCLUDE += -I$(LWIP_INC)/compat/posix/	
+VPATH += $(IPERF_PATH)
+CSRCS += iperf.c \
+		 dscp.c \
+		 iperf_api.c \
+		 iperf_client_api.c \
+		 iperf_error.c \
+		 iperf_locale.c \
+		 iperf_sctp.c \
+		 iperf_server_api.c \
+		 iperf_tcp.c \
+		 iperf_udp.c \
+		 iperf_util.c \
+		 net.c \
+		 timer.c \
+		 units.c \
+		 iperf_time.c \
+		 getopt.c
+endif
+
+INCLUDE += -I$(LWIP_DHCPS)
+VPATH	+= $(LWIP_DHCPS)
+CSRCS	+= dhcpserver.c 
+
+DEFINE  += -DLWIP_SNTP
+ifneq ($(findstring LWIP_SNTP,$(DEFINE)), )
+DEFINE  += -DSNTP_SERVER_DNS -DSNTP_MAX_SERVERS=1
+INCLUDE += -I$(LWIP_INC)/lwip/apps
+VPATH	+= $(LWIP_APPS_SRC)/sntp:$(PLATFORM_PATH)/sntp
+CSRCS	+= sntp.c sntp_tr.c
+endif
+
+#//SMARTCONFIG
+VPATH	+= $(PLATFORM_PATH)/smartconfig
+INCLUDE += -I$(PLATFORM_PATH)/smartconfig
+CSRCS	+= smartconfig.c
+CSRCS	+= smartconfig_notify.c awss_aplist.c zconfig_ieee80211.c zconfig_utils.c
+
+#//NV
+NV_BASE_DIR = $(TOPDIR)/nv
+INCLUDE += -I$(NV_BASE_DIR)/inc -I$(NV_BASE_DIR)/plugins/types -I$(NV_BASE_DIR)/plugins/types/struct2json/inc
+VPATH	+= $(NV_BASE_DIR)/src:$(NV_BASE_DIR)/port:$(NV_BASE_DIR)/plugins/types:$(NV_BASE_DIR)/plugins/types/struct2json/src:$(NV_BASE_DIR)/amtNv
+CSRCS	+= ef_port.c easyflash.c ef_env_legacy_wl.c ef_env_legacy.c ef_env.c ef_log.c ef_utils.c ef_types.c s2j.c amtNv.c
+
+#// PLATFORM/MBEDTLS
+MBEDTLS_SRC_BASE 	= $(PLATFORM_PATH)/mbedtls
+
+INCLUDE += -I$(MBEDTLS_SRC_BASE)/mbedtls/include/mbedtls
+INCLUDE += -I$(MBEDTLS_SRC_BASE)/port/include/mbedtls
+
+VPATH	+= $(MBEDTLS_SRC_BASE)/mbedtls/library:$(MBEDTLS_SRC_BASE)/port
+
+CSRCS   += md4.c \
+ecp.c \
+chachapoly.c \
+blowfish.c \
+ssl_ticket.c \
+ecp_curves.c \
+cipher.c \
+pkcs11.c \
+pk.c \
+entropy_poll.c \
+x509write_csr.c \
+version_features.c\
+havege.c \
+nist_kw.c \
+dhm.c \
+rsa.c \
+memory_buffer_alloc.c\
+md.c \
+md_wrap.c \
+sha256.c \
+ssl_cache.c \
+pkwrite.c \
+ssl_cli.c \
+timing.c \
+asn1parse.c \
+padlock.c \
+version.c \
+gcm.c \
+cmac.c \
+md2.c \
+chacha20.c \
+mbedtls_md5.c \
+x509_crt.c \
+ecdh.c \
+asn1write.c \
+aria.c \
+debug.c \
+x509_create.c \
+ecjpake.c \
+oid.c \
+ecdsa.c \
+ssl_ciphersuites.c \
+sha512.c \
+base64.c \
+xtea.c \
+aes.c \
+rsa_internal.c \
+cipher_wrap.c \
+arc4.c \
+bignum.c \
+pkparse.c \
+ssl_tls.c \
+ssl_srv.c \
+threading.c \
+x509_crl.c \
+camellia.c \
+hkdf.c \
+x509.c \
+certs.c \
+pem.c \
+ssl_cookie.c \
+ccm.c \
+poly1305.c \
+mbedtls_sha1.c \
+hmac_drbg.c \
+des.c \
+platform.c \
+ctr_drbg.c \
+x509write_crt.c \
+pk_wrap.c \
+entropy.c \
+aesni.c \
+pkcs12.c \
+error.c \
+pkcs5.c \
+ripemd160.c \
+platform_util.c \
+x509_csr.c \
+mbedtls_memory.c \
+trs_net_sockets.c \
+trs_hardware_entropy.c \
+
+INCLUDE += -I$(MBEDTLS_SRC_BASE)/mbedtls/include -I$(MBEDTLS_SRC_BASE)/port/include/mbedtls
+
+DEFINE += -DMBEDTLS_CONFIG_FILE='"$(MBEDTLS_SRC_BASE)/port/include/mbedtls/trs_config.h"'
+
+#// PLATFORM/MQTT
+MQTT_SRC_BASE 	= $(PLATFORM_PATH)/mqtt
+
+INCLUDE += -I$(MQTT_SRC_BASE)/include
+INCLUDE += -I$(MQTT_SRC_BASE)/lib/include
+
+ifneq ($(type), fpga)
+VPATH	+= $(MQTT_SRC_BASE)/lib:$(MQTT_SRC_BASE)
+
+CSRCS   += mqtt_msg.c \
+mqtt_outbox.c \
+platform_tr6260.c \
+transport_ssl.c \
+transport_tcp.c \
+transport_ws.c \
+transport.c \
+mqtt_client.c 
+endif
+
+#// PLATFORM/URL_PARSER
+URL_PARSER_SRC_BASE 	= $(PLATFORM_PATH)/url_parser
+
+INCLUDE += -I$(URL_PARSER_SRC_BASE)
+
+VPATH	+= $(URL_PARSER_SRC_BASE)
+CSRCS   += url_parser.c \
+
+
+#// COMMON 
+INCLUDE	+= -I$(COMMON_PATH)
+DEFINE	+= -DUTIL_TRACE_STACK
+CSRCS	+=  util_trace_stack.c
+CSRCS	+=	util_sysbuf_queue.c util_cli_freertos.c system_common.c util_trace.c
+ifeq ($(findstring USE_AT,$(DEFINE)), )
+CSRCS	+= util_cmd.c
+else
+CSRCS	+= util_at.c
+endif
+
+#// WIFI/WPA
+WPA_SUPP_ROOT   = $(WIFI_PATH)/wpa
+WPA_SUPP_PATH   = $(shell find $(WPA_SUPP_ROOT)/. -type d)
+
+INCLUDE += $(addprefix -I,$(WPA_SUPP_PATH))
+include $(WPA_SUPP_ROOT)/wpa_supplicant/FreeRTOS.config
+include $(WPA_SUPP_ROOT)/wpa_supplicant/FreeRTOS.make
+CSRCS += $(notdir $(WPA_SUPP_CSRCS))
+SRCS  += $(notdir $(WPA_SUPP_CPPSRCS))
+VPATH += $(WPA_SUPP_PATH)
+
+DEFINE += -DUSE_WIFI_LIB
+#//WIFI
+WIFI_LIBS := $(TOPDIR)/lib/libwifi.a
+DEFINE += -DINCLUDE_WPA_SUPP -DMAC_ADDR_STANDALONE=\"00:91:19:10:22:21\" -DENABLE_PRE_WPAS_CONFIG_FILE
+ifneq ($(findstring USE_WIFI_LIB,$(DEFINE)), )
+include $(WIFI_PATH)/wifi_lib.mk
+else
+include $(WIFI_PATH)/wifi.mk
+endif
+
+DEFINE += -DUSE_PSM_LIB
+#//WIFI
+#$(error $(DEFINE))
+PSM_LIBS := $(TOPDIR)/lib/libpsm.a
+ifeq ($(findstring USE_PSM_LIB,$(DEFINE)), )
+include $(PLATFORM_PATH)/psm/psm.mk
+endif
+
+#DEFINE += -DENABLE_SET_MAC_ADDR -DOS_CALC_CPU_USAGE
+
+#// REF_DESIGN
+ifneq ($(type), fpga)
+CSRCS	+= main.c standalone.c mqtt_test.c smartconfig_test.c
+else
+CSRCS	+= main.c standalone.c
+endif
+LFLAGS	+= $(TOPDIR)/ref_design/standalone/server_root_cert.pem.txt.o 
+
+DEFINE	+= -DTELNETD_ENABLE
+
+#// SYSTEM
+VPATH   += $(SYSTEM_PATH)
+INCLUDE += -I$(SYSTEM_PATH) \
+	   -I$(WIFI_PATH)/drivers
+CSRCS   += system_wifi.c system_lwip.c system_network.c  event_loop.c event_default_handlers.c system_debug.c system_test.c wifi_sniffer.c wifi_policy_connect.c
+
+#// APPS
+#// machtalk app
+ifeq (1, $(ota))
+MACHTALK_ROOT = $(APP_PATH)/Machtalk2
+MACHTALK_PATH 	= $(shell find $(MACHTALK_ROOT)/. -type d)
+INCLUDE += $(addprefix -I,$(MACHTALK_PATH))
+VPATH += $(MACHTALK_PATH)
+APP_MACHTALK_SRC = MachtalkUser.c user_main.c MT2Aes.c MT2Adapter.c MT2Socket.c HTTPRequest.c            \
+                   json.c MT2Util.c machtalk_link.c MT2.c MT2Conn.c MT2Ctx.c MT2CtxBinaryHandler.c    \
+                   MT2CtxConnectionManager.c MT2CtxGateway.c MT2CtxGatewayPri.c MT2CtxGWJsonHandler.c \
+                   MT2CtxJsonHandler.c MT2CtxOTA.c MT2CtxOTAPri.c MT2CtxPri.c
+CSRCS  += $(APP_MACHTALK_SRC)
+endif
+
+
+#// --------------------------------------------------
+
+include $(TOPDIR)/scripts/rules.mk

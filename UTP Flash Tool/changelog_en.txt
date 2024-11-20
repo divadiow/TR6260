@@ -1,0 +1,31 @@
+2020-8-21: TR6260UTPV1.1.1B01P10
+1) [Multiple BINs in one] Add whether to use the old address recognition type, that is, after checking, 0x4000 will be recognized as 3, and the default recognition is 2;
+2) Use full screen mode to fix the bug that the wx window exceeds the desktop;
+3) Beautify the interface of the UTP tool and give the selected plug-in button a bright color;
+4) Solve the bug that the software crashes when closing, which is caused by not stopping the thread running in time when closing the window;
+
+2020-7-27: TR6260UTPV1.1.1B01P07
+1) Add the option of forced download to RAM;
+2) Fix the bug that NV is written as existing content when saving;
+
+2020-6-23: TR6260UTPV1.1.1B01P06
+1) If 0xEB is received after the burning is completed, it is judged that the partition table is abnormal;
+
+2020-6-16:TR6260UTPV1.1.1B01P05
+1) If 0xEA is received after the burning is completed, it is judged that there is no partition table;
+
+2020-6-11:TR6260UTPV1.1.1B01P04
+1) RSSI is displayed once by default;
+
+2020-6-4:TR6260UTPV1.1.1B01P03
+1) Add RSSI smoothing filter;
+
+2020-5-26:TR6260UTPV1.1.1B01P02
+1) Change the stop instruction when STOM;
+
+2020-5-25:TR6260UTPV1.1.1B01P01
+1) Add tool update record interface;
+
+2020-5-23:TR6260UTPV1.1.1B01
+1) Added a time drop-down box for RSSI test in the RF TEST interface;
+2) Added 8 files to the Combain interface;
