@@ -1,5 +1,5 @@
 # TR6260
-A collection of Transa Semi/ESWIN TR6260 flash backups, SDK fom Skylab, producers of the LCS6260 module, flash tools and various datasheets.
+A collection of Transa Semi/ESWIN TR6260 flash backups, SDK fom Skylab, flash tools and various datasheets relating to the LCS6260 and Hi-Link HLK-M20 modules.
 
 
 Context:
