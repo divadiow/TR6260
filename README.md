@@ -9,5 +9,5 @@ https://www.elektroda.com/rtvforum/viewtopic.php?p=21310036#21310036
 Toolchains:
 https://github.com/andestech/Andes-Development-Kit/releases
 
-Akeeta-SDK-TR620:
+Akeeta-SDK-TR6260:
 https://github.com/Akeeta/Akeeta-SDK-TR6260/tree/master
